@@ -1,7 +1,7 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, \
-    QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QComboBox
-from PyQt6.QtGui import QAction
+    QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QComboBox, QToolBar
+from PyQt6.QtGui import QAction, QIcon
 import sys
 import sqlite3
 
@@ -19,7 +19,7 @@ class MainWindow(QMainWindow):
         edit_menu_item = self.menuBar().addMenu("&Edit")
 
         # Adding extra menu items for file
-        add_student_action = QAction("Add Student", self)
+        add_student_action = QAction(QIcon("icons/add.png"), "Add Student", self)
         add_student_action.triggered.connect(self.insert)
         file_menu_item.addAction(add_student_action)
 
@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         help_menu_item.addAction(about_action)
 
         # Adding extra menu item for edit
-        search_action = QAction("Search", self)
+        search_action = QAction(QIcon("icons/search.png"), "Search", self)
         search_action.triggered.connect(self.open_search)
         edit_menu_item.addAction(search_action)
 
@@ -41,6 +41,15 @@ class MainWindow(QMainWindow):
 
         # Sets the widget as a central widget to the main window
         self.setCentralWidget(self.table)
+
+        # Set the toolbar widget
+        toolbar = QToolBar()
+        # Allows the user to move the toolbar where ever they wish
+        toolbar.setMovable(True)
+        self.addToolBar(toolbar)
+        # Adding actions widgets
+        toolbar.addAction(add_student_action)
+        toolbar.addAction(search_action)
 
     def load_data(self):
         connection = sqlite3.connect("database.db")
