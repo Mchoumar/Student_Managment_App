@@ -1,6 +1,7 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, \
-    QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QComboBox, QToolBar
+    QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QComboBox, QToolBar, \
+    QStatusBar
 from PyQt6.QtGui import QAction, QIcon
 import sys
 import sqlite3
@@ -12,6 +13,7 @@ class MainWindow(QMainWindow):
 
         # Sets up the title of the application
         self.setWindowTitle("Student Manager System")
+        self.setMinimumSize(800, 600)
 
         # navbar for file, help, and edit
         file_menu_item = self.menuBar().addMenu("&File")
@@ -47,9 +49,36 @@ class MainWindow(QMainWindow):
         # Allows the user to move the toolbar where ever they wish
         toolbar.setMovable(True)
         self.addToolBar(toolbar)
+
         # Adding actions widgets
         toolbar.addAction(add_student_action)
         toolbar.addAction(search_action)
+
+        # Create status bar and add status bar element
+        self.statusbar = QStatusBar()
+        self.setStatusBar(self.statusbar)
+
+        # Detect a cell clic
+        self.table.cellClicked.connect(self.cell_clicked)
+
+    def cell_clicked(self):
+        # Add edit button to the status bar
+        edit_button = QPushButton("Edit Record")
+        edit_button.clicked.connect(self.edit)
+
+        # Add delete button to the status bar
+        delete_button = QPushButton("Delete Record")
+        delete_button.clicked.connect(self.delete)
+
+        # Clears the status bar buttons
+        children = self.findChildren(QPushButton)
+        if children:
+            for child in children:
+                self.statusbar.removeWidget(child)
+
+        # Add the widgets to the status bar
+        self.statusbar.addWidget(edit_button)
+        self.statusbar.addWidget(delete_button)
 
     def load_data(self):
         connection = sqlite3.connect("database.db")
@@ -75,6 +104,68 @@ class MainWindow(QMainWindow):
         """Search for a student, and it displays it for you on the table"""
         search_dialog = Search()
         search_dialog.exec()
+
+    def edit(self):
+        """Edits students data"""
+        dialog = EditDialog()
+        dialog.exec()
+
+    def delete(self):
+        """Deletes students data"""
+        dialog = DeleteDialog()
+        dialog.exec()
+
+
+class EditDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        # Set up for new window title and size
+        self.setWindowTitle("Update Student Data")
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
+
+        # Layout for the new window
+        layout = QVBoxLayout()
+
+        # Gets the selected row
+        index = main_window.table.currentRow()
+
+        # Extract the student name
+        student_name = main_window.table.item(index, 1).text()
+
+        # Name input
+        self.student_name = QLineEdit(student_name)
+        self.student_name.setPlaceholderText("Name")
+        layout.addWidget(self.student_name)
+
+        # Course input list
+        self.student_course = QComboBox()
+        self.student_course.addItems(["Biology", "Math", "Astronomy", "Physics"])
+        layout.addWidget(self.student_course)
+
+        # Extract the student mobile
+        student_mobile = main_window.table.item(index, 3).text()
+
+        # Mobile input
+        self.student_mobile = QLineEdit(student_mobile)
+        self.student_mobile.setPlaceholderText("Mobile")
+        layout.addWidget(self.student_mobile)
+
+        # Submit button used to submit the data into the database
+        submit_button = QPushButton("Submit")
+        submit_button.clicked.connect(self.update_student)
+        layout.addWidget(submit_button)
+
+        # Adding the widget into the new window
+        self.setLayout(layout)
+
+    def update_student(self):
+        pass
+
+
+class DeleteDialog(QDialog):
+    pass
 
 
 class InsertDialog(QDialog):
@@ -164,8 +255,6 @@ class Search(QDialog):
         name = self.search_input.text()
         connection = sqlite3.connect("database.db")
         cursor = connection.cursor()
-        result = cursor.execute("SELECT * FROM students WHERE name = ?", (name,))
-        row = list(result)
 
         """Refers to the main window, searches for the name
         and check if the flags matches the name"""
