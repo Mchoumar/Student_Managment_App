@@ -27,6 +27,7 @@ class MainWindow(QMainWindow):
 
         # Adding extra menu item for help
         about_action = QAction("About", self)
+        about_action.triggered.connect(self.about)
         help_menu_item.addAction(about_action)
 
         # Adding extra menu item for edit
@@ -115,6 +116,22 @@ class MainWindow(QMainWindow):
         dialog = DeleteDialog()
         dialog.exec()
 
+    def about(self):
+        """Displays information about the application"""
+        dialog = AboutDialog()
+        dialog.exec()
+
+
+class AboutDialog(QMessageBox):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("About")
+        content = """
+        This app was created during the course "The Python Mega Course".
+        Feel free to modify and reuse this app.
+        """
+        self.setText(content)
+
 
 class EditDialog(QDialog):
     def __init__(self):
@@ -199,9 +216,16 @@ class DeleteDialog(QDialog):
         layout.addWidget(yes, 1, 0)
         layout.addWidget(no, 1, 1)
 
+        # Adds the layout into the window
         self.setLayout(layout)
 
+        # Checks if the user pressed yes or no
         yes.clicked.connect(self.delete_student)
+        no.clicked.connect(self.cancel)
+
+    def cancel(self):
+        """If the user press no then it closes the delete window"""
+        self.close()
 
     def delete_student(self):
         index = main_window.table.currentRow()
