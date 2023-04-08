@@ -131,6 +131,9 @@ class EditDialog(QDialog):
         # Gets the selected row
         index = main_window.table.currentRow()
 
+        # Extract the student ID
+        self.student_id = main_window.table.item(index, 0).text()
+
         # Extract the student name
         student_name = main_window.table.item(index, 1).text()
 
@@ -139,9 +142,13 @@ class EditDialog(QDialog):
         self.student_name.setPlaceholderText("Name")
         layout.addWidget(self.student_name)
 
+        # Extract the student mobile
+        course_name = main_window.table.item(index, 2).text()
+
         # Course input list
         self.student_course = QComboBox()
         self.student_course.addItems(["Biology", "Math", "Astronomy", "Physics"])
+        self.student_course.setCurrentText(course_name)
         layout.addWidget(self.student_course)
 
         # Extract the student mobile
@@ -153,7 +160,7 @@ class EditDialog(QDialog):
         layout.addWidget(self.student_mobile)
 
         # Submit button used to submit the data into the database
-        submit_button = QPushButton("Submit")
+        submit_button = QPushButton("Update")
         submit_button.clicked.connect(self.update_student)
         layout.addWidget(submit_button)
 
@@ -161,7 +168,15 @@ class EditDialog(QDialog):
         self.setLayout(layout)
 
     def update_student(self):
-        pass
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        cursor.execute("UPDATE students SET name = ?, course = ?, mobile = ? WHERE id = ?",
+                       (self.student_name.text(), self.student_course.currentText(), self.student_mobile.text(),
+                        self.student_id))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        main_window.load_data()
 
 
 class DeleteDialog(QDialog):
