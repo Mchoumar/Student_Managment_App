@@ -7,6 +7,15 @@ import sys
 import sqlite3
 
 
+class DatabaseConnection:
+    def __init__(self, databasefile="database.db"):
+        self.databasefile = databasefile
+
+    def connect(self):
+        connection = sqlite3.connect(self.databasefile)
+        return connection
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -82,7 +91,7 @@ class MainWindow(QMainWindow):
         self.statusbar.addWidget(delete_button)
 
     def load_data(self):
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         result = connection.execute("SELECT * FROM students")
 
         # Makes sure that it doesn't overwrite old data
@@ -185,7 +194,7 @@ class EditDialog(QDialog):
         self.setLayout(layout)
 
     def update_student(self):
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()
         cursor.execute("UPDATE students SET name = ?, course = ?, mobile = ? WHERE id = ?",
                        (self.student_name.text(), self.student_course.currentText(), self.student_mobile.text(),
@@ -231,7 +240,7 @@ class DeleteDialog(QDialog):
         index = main_window.table.currentRow()
         student_id = main_window.table.item(index, 0).text()
 
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()
         cursor.execute("DELETE from students WHERE id = ?", (student_id,))
         connection.commit()
@@ -290,7 +299,7 @@ class InsertDialog(QDialog):
         mobile = self.student_mobile.text()
 
         # Starts a connection with the database file
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()
 
         # Executes SQL query to insert students data into the database
@@ -332,7 +341,7 @@ class Search(QDialog):
 
     def data_search(self):
         name = self.search_input.text()
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()
 
         """Refers to the main window, searches for the name
